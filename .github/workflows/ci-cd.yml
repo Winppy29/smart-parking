@@ -14,3 +14,55 @@ jobs:
 
       - name: בניית Image של Storage (Apache)
         run: docker build -t smart-parking-storage ./storage
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: הורדת הקוד מהמאגר
+        uses: actions/checkout@v4
+
+      - name: התחברות ל-GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: יצירת תגיות גרסה ל-Web
+        id: meta-web
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/winppy29/smart-parking-web
+          tags: |
+            type=raw,value=latest
+            type=raw,value=v1.0.${{ github.run_number }}
+
+      - name: בנייה ופרסום של Web
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          push: true
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+
+      - name: יצירת תגיות גרסה ל-Storage
+        id: meta-storage
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/winppy29/smart-parking-storage
+          tags: |
+            type=raw,value=latest
+            type=raw,value=v1.0.${{ github.run_number }}
+
+      - name: בנייה ופרסום של Storage
+        uses: docker/build-push-action@v5
+        with:
+          context: ./storage
+          push: true
+          tags: ${{ steps.meta-storage.outputs.tags }}
+          labels: ${{ steps.meta-storage.outputs.labels }}
