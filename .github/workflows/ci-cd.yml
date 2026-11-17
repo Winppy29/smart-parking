@@ -1,0 +1,16 @@
+name: CI/CD
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: הורדת הקוד מהמאגר
+        uses: actions/checkout@v4
+
+      - name: בניית Image של Web (Nginx)
+        run: docker build -t smart-parking-web ./web
+
+      - name: בניית Image של Storage (Apache)
+        run: docker build -t smart-parking-storage ./storage

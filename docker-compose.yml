@@ -1,0 +1,27 @@
+services:
+  web:
+    build: ./web
+    container_name: smart-parking-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - storage
+    networks:
+      - parking-net
+
+  storage:
+    build: ./storage
+    container_name: smart-parking-storage
+    ports:
+      - "8081:80"
+    volumes:
+      - parking-images:/usr/local/apache2/htdocs
+    networks:
+      - parking-net
+
+volumes:
+  parking-images:
+
+networks:
+  parking-net:
+    driver: bridge
